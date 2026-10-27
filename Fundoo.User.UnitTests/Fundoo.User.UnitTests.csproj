@@ -20,4 +20,9 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Fundoo.User.Application\Fundoo.User.Application.csproj" />
+    <ProjectReference Include="..\Fundoo.User.Infrastructure\Fundoo.User.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>

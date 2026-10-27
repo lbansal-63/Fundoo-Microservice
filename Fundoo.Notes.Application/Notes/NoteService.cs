@@ -19,7 +19,6 @@ public class NoteService(INoteRepository repo) : INoteService
             UpdatedAtUtc = now
         };
         await repo.AddAsync(note, ct);
-        await repo.SaveChangesAsync(ct);
         return NoteDto.From(note);
     }
 
@@ -59,21 +58,20 @@ public class NoteService(INoteRepository repo) : INoteService
     {
         var note = await repo.GetOwnedAsync(userId, id, ct);
         if (note is null) return DeleteResult.NotFound;
-        if (!note.IsTrashed) return DeleteResult.NotTrashed;   // only trashed notes can be deleted
+        if (!note.IsTrashed) return DeleteResult.NotTrashed;
 
-        repo.Remove(note);
-        await repo.SaveChangesAsync(ct);
+        await repo.DeleteAsync(note, ct);
         return DeleteResult.Deleted;
     }
 
     private async Task<NoteDto?> MutateAsync(Guid userId, Guid id, Action<Note> change, CancellationToken ct)
     {
         var note = await repo.GetOwnedAsync(userId, id, ct);
-        if (note is null) return null;      // someone else's note looks like it doesn't exist
+        if (note is null) return null;
 
         change(note);
         note.UpdatedAtUtc = DateTime.UtcNow;
-        await repo.SaveChangesAsync(ct);
+        await repo.UpdateAsync(note, ct);
         return NoteDto.From(note);
     }
 }

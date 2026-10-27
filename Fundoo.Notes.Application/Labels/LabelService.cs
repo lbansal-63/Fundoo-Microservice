@@ -16,7 +16,6 @@ public class LabelService(ILabelRepository labels, INoteRepository notes) : ILab
 
         var label = new Label { Id = Guid.NewGuid(), UserId = userId, Name = name };
         await labels.AddAsync(label, ct);
-        await labels.SaveChangesAsync(ct);
         return new LabelOutcome(LabelResult.Ok, LabelDto.From(label));
     }
 
@@ -30,7 +29,7 @@ public class LabelService(ILabelRepository labels, INoteRepository notes) : ILab
             return new LabelOutcome(LabelResult.Duplicate);
 
         label.Name = name;
-        await labels.SaveChangesAsync(ct);
+        await labels.UpdateAsync(label, ct);
         return new LabelOutcome(LabelResult.Ok, LabelDto.From(label));
     }
 
@@ -39,24 +38,20 @@ public class LabelService(ILabelRepository labels, INoteRepository notes) : ILab
         var label = await labels.GetOwnedAsync(userId, id, ct);
         if (label is null) return LabelResult.NotFound;
 
-        labels.Remove(label);               // NoteLabel links are removed by cascade
-        await labels.SaveChangesAsync(ct);
+        await labels.DeleteAsync(label, ct);     // note_labels rows ON DELETE CASCADE se hatenge
         return LabelResult.Ok;
     }
 
     public async Task<LabelResult> AttachAsync(Guid userId, Guid noteId, Guid labelId, CancellationToken ct = default)
     {
-        // BOTH must belong to the caller, otherwise it looks like they don't exist
         var note = await notes.GetOwnedAsync(userId, noteId, ct);
         var label = await labels.GetOwnedAsync(userId, labelId, ct);
         if (note is null || label is null) return LabelResult.NotFound;
 
         if (await labels.FindLinkAsync(noteId, labelId, ct) is null)
-        {
             await labels.AddLinkAsync(new NoteLabel { NoteId = noteId, LabelId = labelId }, ct);
-            await labels.SaveChangesAsync(ct);
-        }
-        return LabelResult.Ok;              // attaching twice is harmless
+
+        return LabelResult.Ok;
     }
 
     public async Task<LabelResult> DetachAsync(Guid userId, Guid noteId, Guid labelId, CancellationToken ct = default)
@@ -67,10 +62,8 @@ public class LabelService(ILabelRepository labels, INoteRepository notes) : ILab
 
         var link = await labels.FindLinkAsync(noteId, labelId, ct);
         if (link is not null)
-        {
-            labels.RemoveLink(link);
-            await labels.SaveChangesAsync(ct);
-        }
+            await labels.RemoveLinkAsync(link, ct);
+
         return LabelResult.Ok;
     }
 }
