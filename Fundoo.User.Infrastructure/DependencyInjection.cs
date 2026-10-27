@@ -5,6 +5,7 @@ using Fundoo.User.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Fundoo.User.Infrastructure.Notifications;
 
 namespace Fundoo.User.Infrastructure;
 
@@ -29,6 +30,19 @@ public static class DependencyInjection
         services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
         services.AddScoped<ITokenService, JwtTokenService>();
         services.AddScoped<IAuthService, AuthService>();
+        var notifyBaseUrl = config["Notification:BaseUrl"]
+        ?? throw new InvalidOperationException("Notification:BaseUrl is missing.");
+        var notifyKey = config["Notification:ApiKey"]
+            ?? throw new InvalidOperationException("Notification:ApiKey is missing.");
+
+        services.AddHttpClient<IEmailNotifier, NotificationApiEmailNotifier>(c =>
+        {
+            c.BaseAddress = new Uri(notifyBaseUrl);
+            c.DefaultRequestHeaders.Add("X-Internal-Key", notifyKey);
+            c.Timeout = TimeSpan.FromSeconds(10);
+        });
+        services.AddScoped<IResetTokenService, JwtResetTokenService>();
+        services.AddScoped<IForgotPasswordService, ForgotPasswordService>();
 
         return services;
     }

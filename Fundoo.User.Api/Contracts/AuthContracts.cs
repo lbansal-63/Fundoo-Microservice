@@ -17,3 +17,13 @@ public class LoginRequest
 }
 
 public record TokenResponse(string AccessToken);
+public class ForgotPasswordRequest
+{
+    [Required, EmailAddress, MaxLength(256)] public string Email { get; set; } = "";
+}
+
+public class ResetPasswordRequest
+{
+    [Required] public string Token { get; set; } = "";
+    [Required, MinLength(8), MaxLength(128)] public string NewPassword { get; set; } = "";
+}

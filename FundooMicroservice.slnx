@@ -10,6 +10,12 @@
     <Project Path="Fundoo.Notes.Domain/Fundoo.Notes.Domain.csproj" />
     <Project Path="Fundoo.Notes.Infrastructure/Fundoo.Notes.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/src/Services/Notification/">
+    <Project Path="Fundoo.Notification.Api/Fundoo.Notification.Api.csproj" />
+    <Project Path="Fundoo.Notification.Application/Fundoo.Notification.Application.csproj" />
+    <Project Path="Fundoo.Notification.Domain/Fundoo.Notification.Domain.csproj" />
+    <Project Path="Fundoo.Notification.Infrastructure/Fundoo.Notification.Infrastructure.csproj" />
+  </Folder>
   <Folder Name="/src/Services/User/">
     <Project Path="Fundoo.User.Api/Fundoo.User.Api.csproj" />
     <Project Path="Fundoo.User.Application/Fundoo.User.Application.csproj" />
@@ -18,6 +24,7 @@
   </Folder>
   <Folder Name="/tests/">
     <Project Path="Fundoo.Notes.UnitTests/Fundoo.Notes.UnitTests.csproj" />
+    <Project Path="Fundoo.Notification.UnitTests/Fundoo.Notification.UnitTests.csproj" />
     <Project Path="Fundoo.User.UnitTests/Fundoo.User.UnitTests.csproj" />
   </Folder>
 </Solution>
