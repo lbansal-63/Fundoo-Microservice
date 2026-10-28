@@ -10,7 +10,14 @@
           "Host": "localhost",
           "Port": 7001
         }
-      ]
+      ],
+      "RateLimitOptions": {
+        "ClientWhitelist": [],
+        "EnableRateLimiting": true,
+        "Period": "1m",
+        "PeriodTimespan": 60,
+        "Limit": 10
+      }
     },
     {
       "UpstreamPathTemplate": "/api/users",
@@ -22,7 +29,14 @@
           "Host": "localhost",
           "Port": 7001
         }
-      ]
+      ],
+      "RateLimitOptions": {
+        "ClientWhitelist": [],
+        "EnableRateLimiting": true,
+        "Period": "1m",
+        "PeriodTimespan": 30,
+        "Limit": 30
+      }
     },
     {
       "UpstreamPathTemplate": "/api/users/{everything}",
@@ -34,7 +48,14 @@
           "Host": "localhost",
           "Port": 7001
         }
-      ]
+      ],
+      "RateLimitOptions": {
+        "ClientWhitelist": [],
+        "EnableRateLimiting": true,
+        "Period": "1m",
+        "PeriodTimespan": 30,
+        "Limit": 30
+      }
     },
     {
       "UpstreamPathTemplate": "/api/notes",
@@ -46,7 +67,14 @@
           "Host": "localhost",
           "Port": 7002
         }
-      ]
+      ],
+      "RateLimitOptions": {
+        "ClientWhitelist": [],
+        "EnableRateLimiting": true,
+        "Period": "1m",
+        "PeriodTimespan": 20,
+        "Limit": 100
+      }
     },
     {
       "UpstreamPathTemplate": "/api/notes/{everything}",
@@ -58,7 +86,14 @@
           "Host": "localhost",
           "Port": 7002
         }
-      ]
+      ],
+      "RateLimitOptions": {
+        "ClientWhitelist": [],
+        "EnableRateLimiting": true,
+        "Period": "1m",
+        "PeriodTimespan": 20,
+        "Limit": 100
+      }
     },
     {
       "UpstreamPathTemplate": "/api/labels",
@@ -70,7 +105,14 @@
           "Host": "localhost",
           "Port": 7002
         }
-      ]
+      ],
+      "RateLimitOptions": {
+        "ClientWhitelist": [],
+        "EnableRateLimiting": true,
+        "Period": "1m",
+        "PeriodTimespan": 20,
+        "Limit": 100
+      }
     },
     {
       "UpstreamPathTemplate": "/api/labels/{everything}",
@@ -82,10 +124,23 @@
           "Host": "localhost",
           "Port": 7002
         }
-      ]
+      ],
+      "RateLimitOptions": {
+        "ClientWhitelist": [],
+        "EnableRateLimiting": true,
+        "Period": "1m",
+        "PeriodTimespan": 20,
+        "Limit": 100
+      }
     }
   ],
   "GlobalConfiguration": {
-    "BaseUrl": "https://localhost:7000"
+    "BaseUrl": "https://localhost:7000",
+    "RateLimitOptions": {
+      "ClientIdHeader": "ClientId",
+      "QuotaExceededMessage": "Too many requests. Please try again later.",
+      "HttpStatusCode": 429,
+      "DisableRateLimitHeaders": false
+    }
   }
 }
