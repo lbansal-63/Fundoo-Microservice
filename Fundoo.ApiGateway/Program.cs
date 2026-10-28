@@ -1,20 +1,14 @@
-namespace Fundoo.ApiGateway
-{
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            var builder = WebApplication.CreateBuilder(args);
+using Ocelot.DependencyInjection;
+using Ocelot.Middleware;
 
-            builder.Services.AddReverseProxy()
-                .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
+var builder = WebApplication.CreateBuilder(args);
 
-            var app = builder.Build();
+builder.Configuration.AddJsonFile("ocelot.json", optional: false, reloadOnChange: true);
+builder.Services.AddOcelot(builder.Configuration);
 
-            app.MapGet("/health", () => Results.Ok("Healthy"));
-            app.MapReverseProxy();
+var app = builder.Build();
 
-            app.Run();
-        }
-    }
-}
+app.Map("/health", health => health.Run(ctx => ctx.Response.WriteAsync("Healthy")));
+
+await app.UseOcelot();
+app.Run();
