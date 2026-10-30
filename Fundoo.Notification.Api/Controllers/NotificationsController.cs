@@ -13,7 +13,10 @@ public class NotificationsController(INotificationService notifications) : Contr
     [HttpPost("email")]
     public async Task<IActionResult> SendEmail(SendEmailRequest r, CancellationToken ct)
     {
+        await Task.Delay(TimeSpan.FromSeconds(15), ct);   // TEST: test ke baad hata dena
+
         var result = await notifications.SendEmailAsync(r.To, r.Subject, r.Body, r.IsHtml, ct);
+
         return result switch
         {
             SendEmailResult.Sent => Accepted(),

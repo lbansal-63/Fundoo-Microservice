@@ -157,7 +157,15 @@
           "Host": "localhost",
           "Port": 7001
         }
-      ]
+      ],
+      "QoSOptions": {
+        "TimeoutValue": 25000,
+        "ExceptionsAllowedBeforeBreaking": 5,
+        "DurationOfBreak": 10000
+      },
+      "HttpHandlerOptions": {
+        "AllowAutoRedirect": false
+      }
     },
     {
       "UpstreamPathTemplate": "/api/users",
@@ -169,7 +177,15 @@
           "Host": "localhost",
           "Port": 7001
         }
-      ]
+      ],
+      "QoSOptions": {
+        "TimeoutValue": 25000,
+        "ExceptionsAllowedBeforeBreaking": 5,
+        "DurationOfBreak": 10000
+      },
+      "HttpHandlerOptions": {
+        "AllowAutoRedirect": false
+      }
     },
     {
       "UpstreamPathTemplate": "/api/users/{everything}",
@@ -181,7 +197,15 @@
           "Host": "localhost",
           "Port": 7001
         }
-      ]
+      ],
+      "QoSOptions": {
+        "TimeoutValue": 25000,
+        "ExceptionsAllowedBeforeBreaking": 5,
+        "DurationOfBreak": 10000
+      },
+      "HttpHandlerOptions": {
+        "AllowAutoRedirect": false
+      }
     },
     {
       "UpstreamPathTemplate": "/api/notes",
@@ -193,7 +217,15 @@
           "Host": "localhost",
           "Port": 7002
         }
-      ]
+      ],
+      "QoSOptions": {
+        "TimeoutValue": 8000,
+        "ExceptionsAllowedBeforeBreaking": 5,
+        "DurationOfBreak": 10000
+      },
+      "HttpHandlerOptions": {
+        "AllowAutoRedirect": false
+      }
     },
     {
       "UpstreamPathTemplate": "/api/notes/{everything}",
@@ -205,19 +237,35 @@
           "Host": "localhost",
           "Port": 7002
         }
-      ]
+      ],
+      "QoSOptions": {
+        "TimeoutValue": 8000,
+        "ExceptionsAllowedBeforeBreaking": 5,
+        "DurationOfBreak": 10000
+      },
+      "HttpHandlerOptions": {
+        "AllowAutoRedirect": false
+      }
     },
     {
       "UpstreamPathTemplate": "/api/labels",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
       "DownstreamPathTemplate": "/api/labels",
-      "DownstreamScheme": "https",-
+      "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
           "Port": 7002
         }
-      ]
+      ],
+      "QoSOptions": {
+        "TimeoutValue": 8000,
+        "ExceptionsAllowedBeforeBreaking": 5,
+        "DurationOfBreak": 10000
+      },
+      "HttpHandlerOptions": {
+        "AllowAutoRedirect": false
+      }
     },
     {
       "UpstreamPathTemplate": "/api/labels/{everything}",
@@ -229,7 +277,15 @@
           "Host": "localhost",
           "Port": 7002
         }
-      ]
+      ],
+      "QoSOptions": {
+        "TimeoutValue": 8000,
+        "ExceptionsAllowedBeforeBreaking": 5,
+        "DurationOfBreak": 10000
+      },
+      "HttpHandlerOptions": {
+        "AllowAutoRedirect": false
+      }
     }
   ],
   "GlobalConfiguration": {

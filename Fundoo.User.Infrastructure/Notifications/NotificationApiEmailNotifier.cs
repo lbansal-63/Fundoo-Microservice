@@ -1,6 +1,7 @@
 ﻿using System.Net.Http.Json;
 using Fundoo.User.Application.Abstractions;
 using Microsoft.Extensions.Logging;
+using Polly.Timeout;
 
 namespace Fundoo.User.Infrastructure.Notifications;
 
@@ -23,10 +24,11 @@ public class NotificationApiEmailNotifier(HttpClient http, ILogger<NotificationA
             else
                 logger.LogWarning("Notification service returned {StatusCode} for a password reset email", (int)response.StatusCode);
         }
-        catch (Exception ex) when ((ex is HttpRequestException || ex is TaskCanceledException) && !ct.IsCancellationRequested)
+        catch (Exception ex) when ((ex is HttpRequestException or TaskCanceledException or TimeoutRejectedException)
+                                   && !ct.IsCancellationRequested)
         {
-            // Token/email log nahi karte. Notification service down ho to bhi API ka jawab same rehta hai.
-            logger.LogWarning(ex, "Notification service could not be reached");
+            // Token ya email log nahi karte. Service down ho ya timeout ho, forgot-password ka jawab same rehta hai.
+            logger.LogWarning(ex, "Notification service could not be reached or timed out");
         }
     }
 }

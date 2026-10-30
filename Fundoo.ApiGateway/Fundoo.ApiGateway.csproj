@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Ocelot" Version="23.*" />
+    <PackageReference Include="Ocelot.Provider.Polly" Version="23.*" />
   </ItemGroup>
 
 </Project>
