@@ -1,4 +1,5 @@
-﻿using Fundoo.Notes.Api.Contracts;
+﻿using Asp.Versioning;
+using Fundoo.Notes.Api.Contracts;
 using Fundoo.Notes.Application.Abstractions;
 using Fundoo.Notes.Application.Notes;
 using Microsoft.AspNetCore.Authorization;
@@ -8,7 +9,9 @@ namespace Fundoo.Notes.Api.Controllers;
 
 [ApiController]
 [Authorize]
-[Route("api/notes")]
+[ApiVersion("1.0")]
+[ApiVersion("2.0")]
+[Route("api/v{version:apiVersion}/notes")]
 public class NotesController(INoteService notes) : ControllerBase
 {
     // userId ONLY from the validated token, never from request body/query/route
@@ -21,9 +24,25 @@ public class NotesController(INoteService notes) : ControllerBase
         return CreatedAtAction(nameof(Get), new { id = note.Id }, note);
     }
 
+    // v1: purana format, seedha list
     [HttpGet]
+    [MapToApiVersion("1.0")]
     public async Task<IActionResult> List(CancellationToken ct) =>
         Ok(await notes.ListAsync(UserId, NoteView.Active, ct));
+
+    // v2: paging ke saath object
+    [HttpGet]
+    [MapToApiVersion("2.0")]
+    public async Task<IActionResult> ListV2(int page = 1, int pageSize = 20, CancellationToken ct = default)
+    {
+        page = Math.Max(page, 1);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
+        var all = await notes.ListAsync(UserId, NoteView.Active, ct);
+        var items = all.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+        return Ok(new PagedResponse<NoteDto>(items, page, pageSize, all.Count));
+    }
 
     [HttpGet("archived")]
     public async Task<IActionResult> Archived(CancellationToken ct) =>

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;     // NAYA
 using Microsoft.Extensions.Diagnostics.HealthChecks;     // NAYA
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Asp.Versioning;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -51,9 +52,24 @@ builder.Services
 builder.Services.AddAuthorization();
 
 builder.Services.AddControllers();
+builder.Services.AddApiVersioning(o =>
+{
+    o.DefaultApiVersion = new ApiVersion(1, 0);
+    o.AssumeDefaultVersionWhenUnspecified = false;     // URL mein version likhna zaroori
+    o.ReportApiVersions = true;                        // response headers mein supported versions
+    o.ApiVersionReader = new UrlSegmentApiVersionReader();
+})
+    .AddMvc()
+    .AddApiExplorer(o =>
+    {
+        o.GroupNameFormat = "'v'VVV";                      // swagger ke liye group: v1, v2
+        o.SubstituteApiVersionInUrl = true;                // swagger mein {version} ki jagah asli version
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Fundoo Notes API", Version = "v1" });
+    c.SwaggerDoc("v2", new OpenApiInfo { Title = "Fundoo Notes API", Version = "v2" });
     // Adds the "Authorize" button in Swagger so you can paste the token
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -77,7 +93,11 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(o =>
+    {
+        o.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+        o.SwaggerEndpoint("/swagger/v2/swagger.json", "v2");
+    });
 }
 
 app.UseAuthentication();

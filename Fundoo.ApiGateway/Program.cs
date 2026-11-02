@@ -36,7 +36,7 @@ builder.Services.AddRateLimiter(options =>
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
     {
         var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-        var isAuth = context.Request.Path.StartsWithSegments("/api/auth");
+        var isAuth = context.Request.Path.Value?.Contains("/auth/", StringComparison.OrdinalIgnoreCase) == true;
 
         // Har IP ke liye alag counter, aur auth ke liye alag, sakht limit
         return RateLimitPartition.GetFixedWindowLimiter(

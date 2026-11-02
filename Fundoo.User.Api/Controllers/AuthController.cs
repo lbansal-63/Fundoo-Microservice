@@ -1,11 +1,13 @@
 ﻿using Fundoo.User.Api.Contracts;
 using Fundoo.User.Application.Abstractions;
 using Microsoft.AspNetCore.Mvc;
+using Asp.Versioning;
 
 namespace Fundoo.User.Api.Controllers;
 
 [ApiController]
-[Route("api/auth")]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/auth")]
 public class AuthController(IAuthService auth, IForgotPasswordService forgotPassword) : ControllerBase
 {
     [HttpPost("register")]

@@ -148,9 +148,9 @@
 {
   "Routes": [
     {
-      "UpstreamPathTemplate": "/api/auth/{everything}",
+      "UpstreamPathTemplate": "/api/{version}/auth/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
-      "DownstreamPathTemplate": "/api/auth/{everything}",
+      "DownstreamPathTemplate": "/api/{version}/auth/{everything}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -162,15 +162,12 @@
         "TimeoutValue": 25000,
         "ExceptionsAllowedBeforeBreaking": 5,
         "DurationOfBreak": 10000
-      },
-      "HttpHandlerOptions": {
-        "AllowAutoRedirect": false
       }
     },
     {
-      "UpstreamPathTemplate": "/api/users",
+      "UpstreamPathTemplate": "/api/{version}/users",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
-      "DownstreamPathTemplate": "/api/users",
+      "DownstreamPathTemplate": "/api/{version}/users",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -182,15 +179,12 @@
         "TimeoutValue": 25000,
         "ExceptionsAllowedBeforeBreaking": 5,
         "DurationOfBreak": 10000
-      },
-      "HttpHandlerOptions": {
-        "AllowAutoRedirect": false
       }
     },
     {
-      "UpstreamPathTemplate": "/api/users/{everything}",
+      "UpstreamPathTemplate": "/api/{version}/users/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
-      "DownstreamPathTemplate": "/api/users/{everything}",
+      "DownstreamPathTemplate": "/api/{version}/users/{everything}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -202,15 +196,12 @@
         "TimeoutValue": 25000,
         "ExceptionsAllowedBeforeBreaking": 5,
         "DurationOfBreak": 10000
-      },
-      "HttpHandlerOptions": {
-        "AllowAutoRedirect": false
       }
     },
     {
-      "UpstreamPathTemplate": "/api/notes",
+      "UpstreamPathTemplate": "/api/{version}/notes",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
-      "DownstreamPathTemplate": "/api/notes",
+      "DownstreamPathTemplate": "/api/{version}/notes",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -222,15 +213,12 @@
         "TimeoutValue": 8000,
         "ExceptionsAllowedBeforeBreaking": 5,
         "DurationOfBreak": 10000
-      },
-      "HttpHandlerOptions": {
-        "AllowAutoRedirect": false
       }
     },
     {
-      "UpstreamPathTemplate": "/api/notes/{everything}",
+      "UpstreamPathTemplate": "/api/{version}/notes/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
-      "DownstreamPathTemplate": "/api/notes/{everything}",
+      "DownstreamPathTemplate": "/api/{version}/notes/{everything}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -242,15 +230,12 @@
         "TimeoutValue": 8000,
         "ExceptionsAllowedBeforeBreaking": 5,
         "DurationOfBreak": 10000
-      },
-      "HttpHandlerOptions": {
-        "AllowAutoRedirect": false
       }
     },
     {
-      "UpstreamPathTemplate": "/api/labels",
+      "UpstreamPathTemplate": "/api/{version}/labels",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
-      "DownstreamPathTemplate": "/api/labels",
+      "DownstreamPathTemplate": "/api/{version}/labels",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -262,15 +247,12 @@
         "TimeoutValue": 8000,
         "ExceptionsAllowedBeforeBreaking": 5,
         "DurationOfBreak": 10000
-      },
-      "HttpHandlerOptions": {
-        "AllowAutoRedirect": false
       }
     },
     {
-      "UpstreamPathTemplate": "/api/labels/{everything}",
+      "UpstreamPathTemplate": "/api/{version}/labels/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
-      "DownstreamPathTemplate": "/api/labels/{everything}",
+      "DownstreamPathTemplate": "/api/{version}/labels/{everything}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -282,9 +264,6 @@
         "TimeoutValue": 8000,
         "ExceptionsAllowedBeforeBreaking": 5,
         "DurationOfBreak": 10000
-      },
-      "HttpHandlerOptions": {
-        "AllowAutoRedirect": false
       }
     }
   ],

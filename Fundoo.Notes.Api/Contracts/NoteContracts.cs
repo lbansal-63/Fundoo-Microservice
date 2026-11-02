@@ -16,3 +16,6 @@ public class UpdateNoteRequest
     [MaxLength(50)] public string? Color { get; set; }
     public bool IsPinned { get; set; }
 }
+
+// NAYA: v2 ki paging wali list ka response
+public record PagedResponse<T>(IReadOnlyList<T> Items, int Page, int PageSize, int Total);
