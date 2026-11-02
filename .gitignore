@@ -90,3 +90,8 @@ Desktop.ini
 .nuget/
 *.publishsettings
 node_modules/
+Postman (x64).exe
+Postman (x64).exe
+   *.exe
+   *.msi
+   *.zip

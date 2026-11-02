@@ -1,6 +1,8 @@
 using System.Text;
 using Fundoo.Notes.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;     // NAYA
+using Microsoft.Extensions.Diagnostics.HealthChecks;     // NAYA
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
@@ -12,6 +14,22 @@ if (string.IsNullOrWhiteSpace(signingKey) || signingKey.Length < 32)
     throw new InvalidOperationException("Jwt:SigningKey must be at least 32 characters.");
 
 builder.Services.AddNotesInfrastructure(builder.Configuration);
+
+// NAYA: PostgreSQL connection string (wahi jo app use karti hai)
+var connectionString = builder.Configuration.GetConnectionString("NotesDb")
+    ?? throw new InvalidOperationException("ConnectionStrings:NotesDb is missing.");
+
+// NAYA: health checks register
+builder.Services.AddHealthChecks()
+    .AddCheck(
+        "self",
+        () => HealthCheckResult.Healthy(),
+        tags: new[] { "live" })
+    .AddNpgSql(
+        connectionString,
+        name: "postgresql",
+        tags: new[] { "ready" },
+        timeout: TimeSpan.FromSeconds(3));
 
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -65,6 +83,16 @@ if (app.Environment.IsDevelopment())
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-app.MapGet("/health", () => Results.Ok("Healthy"));
+
+// NAYA: purana app.MapGet("/health", ...) hata diya, uski jagah yeh do
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("live")
+});
+
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("ready")
+});
 
 app.Run();

@@ -1,6 +1,7 @@
 ﻿using System.Net.Http.Json;
 using Fundoo.User.Application.Abstractions;
 using Microsoft.Extensions.Logging;
+using Polly.RateLimiting;
 using Polly.Timeout;
 
 namespace Fundoo.User.Infrastructure.Notifications;
@@ -24,10 +25,14 @@ public class NotificationApiEmailNotifier(HttpClient http, ILogger<NotificationA
             else
                 logger.LogWarning("Notification service returned {StatusCode} for a password reset email", (int)response.StatusCode);
         }
+        catch (RateLimiterRejectedException)
+        {
+            // BULKHEAD ne turant mana kar diya, Notification ko call hi nahi gayi
+            logger.LogWarning("Notification calls limit (bulkhead) reached; email request was skipped");
+        }
         catch (Exception ex) when ((ex is HttpRequestException or TaskCanceledException or TimeoutRejectedException)
                                    && !ct.IsCancellationRequested)
         {
-            // Token ya email log nahi karte. Service down ho ya timeout ho, forgot-password ka jawab same rehta hai.
             logger.LogWarning(ex, "Notification service could not be reached or timed out");
         }
     }
