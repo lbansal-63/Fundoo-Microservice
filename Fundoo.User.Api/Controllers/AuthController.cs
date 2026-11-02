@@ -13,11 +13,13 @@ public class AuthController(IAuthService auth, IForgotPasswordService forgotPass
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterRequest request, CancellationToken ct)
     {
-        var result = await auth.RegisterAsync(request.FirstName, request.LastName, request.Email, request.Password, ct);
-        if (!result.Succeeded)
-            return Problem(statusCode: StatusCodes.Status409Conflict, title: result.Error);
+        var result = await auth.RegisterAsync(
+            request.FirstName, request.LastName, request.Email, request.Password, ct);
 
-        return StatusCode(StatusCodes.Status201Created);
+        if (!result.Succeeded)
+            return Problem(statusCode: StatusCodes.Status400BadRequest, title: result.Error);
+
+        return Ok(new { message = "Registration successful. You can now log in." });
     }
 
     [HttpPost("login")]

@@ -1,11 +1,15 @@
 using Fundoo.Notification.Infrastructure;
 using Fundoo.Notification.Api.Security;
 using Microsoft.OpenApi.Models;
+using FluentValidation;
+using Fundoo.Notification.Api.Filters;
+using Fundoo.Notification.Api.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddNotificationInfrastructure(builder.Configuration);
-builder.Services.AddControllers();
+builder.Services.AddControllers(o => o.Filters.Add<FluentValidationFilter>());
+builder.Services.AddValidatorsFromAssemblyContaining<SendEmailRequestValidator>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {

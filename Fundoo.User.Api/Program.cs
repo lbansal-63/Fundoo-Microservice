@@ -1,10 +1,14 @@
 using Fundoo.User.Infrastructure;
 using Asp.Versioning;
+using FluentValidation;
+using Fundoo.User.Api.Filters;
+using Fundoo.User.Api.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddUserInfrastructure(builder.Configuration);
-builder.Services.AddControllers();
+builder.Services.AddControllers(o => o.Filters.Add<FluentValidationFilter>());
+builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
 builder.Services.AddApiVersioning(o =>
 {
     o.DefaultApiVersion = new ApiVersion(1, 0);

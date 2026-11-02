@@ -6,6 +6,9 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;     // NAYA
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Asp.Versioning;
+using FluentValidation;
+using Fundoo.Notes.Api.Filters;
+using Fundoo.Notes.Api.Validators;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -51,7 +54,8 @@ builder.Services
     });
 builder.Services.AddAuthorization();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(o => o.Filters.Add<FluentValidationFilter>()); 
+builder.Services.AddValidatorsFromAssemblyContaining<CreateNoteRequestValidator>();
 builder.Services.AddApiVersioning(o =>
 {
     o.DefaultApiVersion = new ApiVersion(1, 0);
