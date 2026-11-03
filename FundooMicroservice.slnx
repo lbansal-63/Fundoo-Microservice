@@ -1,5 +1,7 @@
 <Solution>
-  <Folder Name="/src/" />
+  <Folder Name="/src/">
+    <File Path="docker-compose.yml" />
+  </Folder>
   <Folder Name="/src/ApiGateway/">
     <Project Path="Fundoo.ApiGateway/Fundoo.ApiGateway.csproj" />
   </Folder>

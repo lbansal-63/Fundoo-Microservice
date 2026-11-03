@@ -1,14 +1,12 @@
-﻿using Fundoo.User.Application.Abstractions;
+﻿using Confluent.Kafka;
+using Fundoo.User.Application.Abstractions;
 using Fundoo.User.Application.Auth;
+using Fundoo.User.Infrastructure.Messaging;
 using Fundoo.User.Infrastructure.Persistence;
 using Fundoo.User.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Fundoo.User.Infrastructure.Notifications;
-using System.Net;
-using Microsoft.Extensions.Http.Resilience;
-using Polly;
 
 namespace Fundoo.User.Infrastructure;
 
@@ -27,46 +25,40 @@ public static class DependencyInjection
         services.AddDbContext<UserDbContext>(o =>
             o.UseNpgsql(connectionString, npgsql =>
                 npgsql.MigrationsAssembly(typeof(UserDbContext).Assembly.FullName)));
-        
+
         services.AddSingleton(jwt);
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
         services.AddScoped<ITokenService, JwtTokenService>();
         services.AddScoped<IAuthService, AuthService>();
-        var notifyBaseUrl = config["Notification:BaseUrl"]
-        ?? throw new InvalidOperationException("Notification:BaseUrl is missing.");
-        var notifyKey = config["Notification:ApiKey"]
-            ?? throw new InvalidOperationException("Notification:ApiKey is missing.");
 
-        services.AddHttpClient<IEmailNotifier, NotificationApiEmailNotifier>(c =>
-        {
-            c.BaseAddress = new Uri(notifyBaseUrl);
-            c.DefaultRequestHeaders.Add("X-Internal-Key", notifyKey);
-            c.Timeout = TimeSpan.FromSeconds(20);          // TOTAL timeout (saare retries milakar)
-        })
-    .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
-    {
-        AllowAutoRedirect = false,                      // REDIRECT: chupchap follow nahi karna
-        ConnectTimeout = TimeSpan.FromSeconds(3)        // TIMEOUT: connection banne ka time
-    })
-    .AddResilienceHandler("notification-pipeline", pipeline =>
-    {
-        // RETRY + JITTER
-        pipeline.AddRetry(new HttpRetryStrategyOptions
-        {
-            MaxRetryAttempts = 2,                       // pehli call + 2 retry = kul 3
-            Delay = TimeSpan.FromMilliseconds(500),
-            BackoffType = DelayBackoffType.Exponential, // 0.5s, 1s ...
-            UseJitter = true,                           // har wait mein random time
-            ShouldHandle = args => ValueTask.FromResult(
-                args.Outcome.Exception is HttpRequestException ||
-                args.Outcome.Result?.StatusCode is HttpStatusCode.BadGateway
-                                                or HttpStatusCode.ServiceUnavailable)
-        });
+        // ---- Kafka producer (password reset event publish karne ke liye) ----
+        var kafka = config.GetSection("Kafka").Get<KafkaOptions>() ?? new KafkaOptions();
+        services.AddSingleton(kafka);
 
-        // TIMEOUT: ek koshish ka time (retry ke andar)
-        pipeline.AddTimeout(TimeSpan.FromSeconds(5));
-    });
+        var producerConfig = new ProducerConfig
+        {
+            BootstrapServers = kafka.BootstrapServers,
+            Acks = Acks.All,
+            EnableIdempotence = true,
+            MessageTimeoutMs = 5000
+        };
+
+        // Sirf cloud Kafka ke liye; local mein ApiKey khali rakho
+        if (!string.IsNullOrWhiteSpace(kafka.ApiKey))
+        {
+            producerConfig.SecurityProtocol = SecurityProtocol.SaslSsl;
+            producerConfig.SaslMechanism = SaslMechanism.Plain;
+            producerConfig.SaslUsername = kafka.ApiKey;
+            producerConfig.SaslPassword = kafka.ApiSecret;
+        }
+
+        services.AddSingleton<IProducer<string, string>>(_ =>
+            new ProducerBuilder<string, string>(producerConfig).Build());
+
+        services.AddScoped<IEmailNotifier, KafkaEmailNotifier>();
+        // ----------------------------------------------------------------------
+
         services.AddScoped<IResetTokenService, JwtResetTokenService>();
         services.AddScoped<IForgotPasswordService, ForgotPasswordService>();
 
