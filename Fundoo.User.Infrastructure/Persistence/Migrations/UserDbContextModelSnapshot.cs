@@ -40,6 +40,10 @@ namespace Fundoo.User.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("GoogleSubject")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
@@ -56,10 +60,31 @@ namespace Fundoo.User.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("RecoveryCodeHashes")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("TwoFactorFailedCount")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("TwoFactorLastStep")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime?>("TwoFactorLockedUntilUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TwoFactorSecret")
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("UpdatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("GoogleSubject")
+                        .IsUnique();
 
                     b.HasIndex("NormalizedEmail")
                         .IsUnique();

@@ -52,3 +52,37 @@ public class ResetPasswordRequestValidator : AbstractValidator<ResetPasswordRequ
         RuleFor(x => x.NewPassword).StrongPassword();
     }
 }
+
+public class TwoFactorLoginRequestValidator : AbstractValidator<TwoFactorLoginRequest>
+{
+    public TwoFactorLoginRequestValidator()
+    {
+        RuleFor(x => x.TwoFactorToken).NotEmpty().MaximumLength(4096);
+        RuleFor(x => x.Code).NotEmpty().MaximumLength(32);
+    }
+}
+
+public class TwoFactorEnableRequestValidator : AbstractValidator<TwoFactorEnableRequest>
+{
+    public TwoFactorEnableRequestValidator()
+    {
+        RuleFor(x => x.Code).NotEmpty().Length(6).Matches("^[0-9]{6}$").WithMessage("Code must be 6 digits.");
+    }
+}
+
+public class TwoFactorDisableRequestValidator : AbstractValidator<TwoFactorDisableRequest>
+{
+    public TwoFactorDisableRequestValidator()
+    {
+        RuleFor(x => x.Code).NotEmpty().MaximumLength(32);
+        RuleFor(x => x.Password).MaximumLength(128);
+    }
+}
+
+public class GoogleLoginRequestValidator : AbstractValidator<GoogleLoginRequest>
+{
+    public GoogleLoginRequestValidator()
+    {
+        RuleFor(x => x.IdToken).NotEmpty().MaximumLength(8192);
+    }
+}

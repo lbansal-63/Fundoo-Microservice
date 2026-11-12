@@ -12,9 +12,12 @@ public class UserDbContext(DbContextOptions<UserDbContext> options) : DbContext(
     {
         b.Entity<AppUser>(e =>
         {
-            e.HasIndex(u => u.NormalizedEmail).IsUnique();   // DB-level uniqueness
+            e.HasIndex(u => u.NormalizedEmail).IsUnique();
             e.Property(u => u.Email).HasMaxLength(256);
             e.Property(u => u.NormalizedEmail).HasMaxLength(256);
+
+            e.Property(u => u.GoogleSubject).HasMaxLength(255);
+            e.HasIndex(u => u.GoogleSubject).IsUnique();
         });
     }
 }

@@ -2,6 +2,7 @@
 using Fundoo.User.Application.Abstractions;
 using Fundoo.User.Application.Auth;
 using Fundoo.User.Infrastructure.Messaging;
+using Fundoo.User.Infrastructure.Notifications;
 using Fundoo.User.Infrastructure.Persistence;
 using Fundoo.User.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
@@ -32,32 +33,73 @@ public static class DependencyInjection
         services.AddScoped<ITokenService, JwtTokenService>();
         services.AddScoped<IAuthService, AuthService>();
 
-        // ---- Kafka producer (password reset event publish karne ke liye) ----
-        var kafka = config.GetSection("Kafka").Get<KafkaOptions>() ?? new KafkaOptions();
-        services.AddSingleton(kafka);
+        // ---- 2FA (TOTP) ----
+        var twoFactor = config.GetSection("TwoFactor").Get<TwoFactorOptions>() ?? new TwoFactorOptions();
+        var totpOptions = new TotpOptions { Issuer = config["TwoFactor:Issuer"] ?? "Fundoo" };
+        services.AddSingleton(twoFactor);
+        services.AddSingleton(totpOptions);
+        services.AddSingleton<ISecretProtector, AesGcmSecretProtector>();
+        services.AddSingleton<ITotpService, TotpService>();
+        services.AddScoped<ITwoFactorChallengeService, JwtTwoFactorChallengeService>();
+        services.AddScoped<ITwoFactorService, TwoFactorService>();
 
-        var producerConfig = new ProducerConfig
-        {
-            BootstrapServers = kafka.BootstrapServers,
-            Acks = Acks.All,
-            EnableIdempotence = true,
-            MessageTimeoutMs = 5000
-        };
+        // ---- SSO (Google) ----
+        var google = config.GetSection("Google").Get<GoogleOptions>() ?? new GoogleOptions();
+        services.AddSingleton(google);
+        services.AddSingleton<IGoogleTokenValidator, GoogleTokenValidator>();
+        services.AddScoped<IExternalLoginService, ExternalLoginService>();
 
-        // Sirf cloud Kafka ke liye; local mein ApiKey khali rakho
-        if (!string.IsNullOrWhiteSpace(kafka.ApiKey))
+        // ---- Notification transport: "Kafka" (default) ya "Http" (OAuth client_credentials) ----
+        var transport = config["Notification:Transport"] ?? "Kafka";
+        if (transport.Equals("Http", StringComparison.OrdinalIgnoreCase))
         {
-            producerConfig.SecurityProtocol = SecurityProtocol.SaslSsl;
-            producerConfig.SaslMechanism = SaslMechanism.Plain;
-            producerConfig.SaslUsername = kafka.ApiKey;
-            producerConfig.SaslPassword = kafka.ApiSecret;
+            var serviceAuth = config.GetSection("ServiceAuth").Get<ServiceAuthOptions>() ?? new ServiceAuthOptions();
+            if (string.IsNullOrWhiteSpace(serviceAuth.TokenEndpoint) || string.IsNullOrWhiteSpace(serviceAuth.ClientId)
+                || string.IsNullOrWhiteSpace(serviceAuth.ClientSecret))
+                throw new InvalidOperationException(
+                    "ServiceAuth:TokenEndpoint, ClientId and ClientSecret are required when Notification:Transport is Http.");
+
+            var baseUrl = config["Notification:BaseUrl"]
+                          ?? throw new InvalidOperationException("Notification:BaseUrl is missing.");
+
+            services.AddSingleton(serviceAuth);
+            services.AddHttpClient(ClientCredentialsTokenProvider.HttpClientName, c => c.Timeout = TimeSpan.FromSeconds(5));
+            services.AddSingleton<ClientCredentialsTokenProvider>();
+            services.AddTransient<ClientCredentialsHandler>();
+
+            services.AddHttpClient<IEmailNotifier, NotificationApiEmailNotifier>(c =>
+            {
+                c.BaseAddress = new Uri(baseUrl);
+                c.Timeout = TimeSpan.FromSeconds(5);
+            })
+                .AddHttpMessageHandler<ClientCredentialsHandler>();
         }
+        else
+        {
+            var kafka = config.GetSection("Kafka").Get<KafkaOptions>() ?? new KafkaOptions();
+            services.AddSingleton(kafka);
 
-        services.AddSingleton<IProducer<string, string>>(_ =>
-            new ProducerBuilder<string, string>(producerConfig).Build());
+            var producerConfig = new ProducerConfig
+            {
+                BootstrapServers = kafka.BootstrapServers,
+                Acks = Acks.All,
+                EnableIdempotence = true,
+                MessageTimeoutMs = 5000
+            };
 
-        services.AddScoped<IEmailNotifier, KafkaEmailNotifier>();
-        // ----------------------------------------------------------------------
+            if (!string.IsNullOrWhiteSpace(kafka.ApiKey))
+            {
+                producerConfig.SecurityProtocol = SecurityProtocol.SaslSsl;
+                producerConfig.SaslMechanism = SaslMechanism.Plain;
+                producerConfig.SaslUsername = kafka.ApiKey;
+                producerConfig.SaslPassword = kafka.ApiSecret;
+            }
+
+            services.AddSingleton<IProducer<string, string>>(_ =>
+                new ProducerBuilder<string, string>(producerConfig).Build());
+
+            services.AddScoped<IEmailNotifier, KafkaEmailNotifier>();
+        }
 
         services.AddScoped<IResetTokenService, JwtResetTokenService>();
         services.AddScoped<IForgotPasswordService, ForgotPasswordService>();

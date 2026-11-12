@@ -16,3 +16,34 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+
+  kafka-init:
+    image: apache/kafka:3.7.0
+    container_name: fundoo-kafka-init
+    depends_on:
+      - kafka
+    network_mode: "service:kafka"
+    restart: "no"
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        until /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1; do
+          echo "waiting for kafka..."; sleep 2
+        done
+        for t in fundoo.password-reset-requested fundoo.user-registered; do
+          /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --create --if-not-exists --topic $$t --partitions 3 --replication-factor 1
+          /opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --create --if-not-exists --topic $$t.dlq --partitions 1 --replication-factor 1 --config retention.ms=604800000
+        done
+        echo "topics ready"
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:25.0
+    container_name: fundoo-keycloak
+    command: ["start-dev", "--import-realm"]
+    ports:
+      - "8080:8080"
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import:ro

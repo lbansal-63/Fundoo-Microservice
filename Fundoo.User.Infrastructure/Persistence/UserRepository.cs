@@ -17,6 +17,9 @@ public class UserRepository(UserDbContext db) : IUserRepository
 
     public Task SaveChangesAsync(CancellationToken ct = default) => 
         db.SaveChangesAsync(ct);
+
+    public Task<AppUser?> FindByGoogleSubjectAsync(string googleSubject, CancellationToken ct = default) =>
+    db.Users.FirstOrDefaultAsync(u => u.GoogleSubject == googleSubject, ct);
 }
 
 // 

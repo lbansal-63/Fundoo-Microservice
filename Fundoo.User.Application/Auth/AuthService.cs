@@ -3,7 +3,12 @@ using Fundoo.User.Domain.Entities;
 
 namespace Fundoo.User.Application.Auth;
 
-public class AuthService(IUserRepository users, IPasswordHasher hasher, ITokenService tokens) : IAuthService
+public class AuthService(
+    IUserRepository users,
+    IPasswordHasher hasher,
+    ITokenService tokens,
+    ITwoFactorChallengeService challenges,
+    IEmailNotifier notifier) : IAuthService
 {
     public async Task<AuthResult> RegisterAsync(string firstName, string lastName, string email, string password, CancellationToken ct = default)
     {
@@ -28,6 +33,8 @@ public class AuthService(IUserRepository users, IPasswordHasher hasher, ITokenSe
 
         await users.AddAsync(user, ct);
         await users.SaveChangesAsync(ct);
+
+        await TrySendWelcomeAsync(user, ct);
         return AuthResult.Success();
     }
 
@@ -35,10 +42,24 @@ public class AuthService(IUserRepository users, IPasswordHasher hasher, ITokenSe
     {
         var user = await users.FindByNormalizedEmailAsync(EmailNormalizer.Normalize(email), ct);
 
-        // Same generic message for unknown email and wrong password
-        if (user is null || !user.IsActive || !hasher.Verify(password, user.PasswordHash))
+        // PasswordHash khali = sirf-Google account (BCrypt khali hash par exception deta hai)
+        if (user is null || !user.IsActive
+            || string.IsNullOrEmpty(user.PasswordHash)
+            || !hasher.Verify(password, user.PasswordHash))
             return AuthResult.Failure("Invalid email or password.");
 
+        if (user.TwoFactorEnabled)
+            return AuthResult.TwoFactorRequired(challenges.Create(user));
+
         return AuthResult.Success(tokens.CreateAccessToken(user));
+    }
+
+    private async Task TrySendWelcomeAsync(AppUser user, CancellationToken ct)
+    {
+        try { await notifier.SendWelcomeEmailAsync(user.Email, user.FirstName, ct); }
+        catch (Exception) when (!ct.IsCancellationRequested)
+        {
+            // Welcome email optional hai, registration fail nahi honi chahiye
+        }
     }
 }

@@ -9,7 +9,12 @@ public class AuthServiceTests
 
     public AuthServiceTests()
     {
-        _service = new AuthService(_repo, new FakePasswordHasher(), new FakeTokenService());
+        _service = new AuthService(
+            _repo,
+            new FakePasswordHasher(),
+            new FakeTokenService(),
+            new FakeTwoFactorChallengeService(),
+            new FakeEmailNotifier());
     }
 
     [Fact]

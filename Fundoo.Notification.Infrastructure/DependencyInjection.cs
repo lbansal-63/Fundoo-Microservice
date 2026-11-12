@@ -20,10 +20,9 @@ public static class DependencyInjection
         services.AddScoped<IEmailSender, SmtpEmailSender>();
         services.AddScoped<INotificationService, NotificationService>();
 
-        // ---- Kafka consumer (password reset event sunkar email bhejta hai) ----
+
         services.Configure<KafkaOptions>(config.GetSection("Kafka"));
-        services.AddHostedService<PasswordResetConsumer>();
-        // -----------------------------------------------------------------------
+        services.AddHostedService<KafkaEmailConsumer>();
 
         return services;
     }
