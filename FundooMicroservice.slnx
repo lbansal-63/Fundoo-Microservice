@@ -1,12 +1,12 @@
 ﻿<Solution>
   <Folder Name="/src/">
-    <File Path="docker-compose.yml" />
+    <File Path="src/docker-compose.yml" />
   </Folder>
   <Folder Name="/src/ApiGateway/">
     <Project Path="src/ApiGateway/Fundoo.ApiGateway/Fundoo.ApiGateway.csproj" />
   </Folder>
   <Folder Name="/src/keycloak/">
-    <File Path="fundoo-realm.json" />
+    <File Path="src/keycloak/fundoo-realm.json" />
   </Folder>
   <Folder Name="/src/Services/" />
   <Folder Name="/src/Services/Notes/">
