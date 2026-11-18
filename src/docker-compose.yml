@@ -1,3 +1,4 @@
+name: fundoomicroservice
 services:
   kafka:
     image: apache/kafka:3.7.0
