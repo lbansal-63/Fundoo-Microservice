@@ -47,7 +47,7 @@ services:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
     volumes:
-      - ./fundoo-realm.json:/opt/keycloak/data/import/fundoo-realm.json:ro
+      - ./keycloak/fundoo-realm.json:/opt/keycloak/data/import/fundoo-realm.json:ro
 
   postgres:
     image: postgres:16-alpine
