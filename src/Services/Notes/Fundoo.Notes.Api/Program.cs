@@ -120,15 +120,13 @@ app.UseExceptionHandler(errorApp =>
     });
 });
 
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(o =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(o =>
-    {
-        o.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
-        o.SwaggerEndpoint("/swagger/v2/swagger.json", "v2");
-    });
-}
+    o.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+    o.SwaggerEndpoint("/swagger/v2/swagger.json", "v2");
+    o.RoutePrefix = "swagger";
+});
 
 app.UseAuthentication();
 app.UseAuthorization();
