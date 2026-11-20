@@ -47,4 +47,14 @@ services:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
     volumes:
-      - ./keycloak:/opt/keycloak/data/import:ro
+      - ./fundoo-realm.json:/opt/keycloak/data/import/fundoo-realm.json:ro
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: fundoo-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: fundoo_user_db

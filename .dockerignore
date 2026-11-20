@@ -1,0 +1,12 @@
+**/bin/
+**/obj/
+**/.vs/
+.git/
+.gitignore
+tests/
+**/*.user
+**/secrets.json
+global.json
+*.md
+src/docker-compose.yml
+src/keycloak/

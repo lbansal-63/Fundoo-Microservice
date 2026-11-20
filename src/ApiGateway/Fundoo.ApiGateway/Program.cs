@@ -1,31 +1,25 @@
-//Ocelot ka rate limit
-//using Ocelot.DependencyInjection;
-//using Ocelot.Middleware;
-//using System.Threading.RateLimiting;
-
-//var builder = WebApplication.CreateBuilder(args);
-
-//builder.Configuration.AddJsonFile("ocelot.json", optional: false, reloadOnChange: true);
-//builder.Services.AddOcelot(builder.Configuration);
-
-//var app = builder.Build();
-
-//app.Map("/health", health => health.Run(ctx => ctx.Response.WriteAsync("Healthy")));
-
-//await app.UseOcelot();
-//app.Run();
-
-
-
-// ASP.NET Core ka limiter
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.HttpOverrides;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 using Ocelot.Provider.Polly;
+using NLog.Web;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Configuration.AddJsonFile("ocelot.json", optional: false, reloadOnChange: true);
+// Configure NLog for logging
+builder.Logging.ClearProviders();
+builder.Host.UseNLog();
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
+
+var ocelotFile = builder.Configuration["OcelotConfigFile"] ?? "ocelot.json";
+builder.Configuration.AddJsonFile(ocelotFile, optional: false, reloadOnChange: true);
 builder.Services.AddOcelot(builder.Configuration).AddPolly();
 
 builder.Services.AddRateLimiter(options =>
@@ -63,10 +57,11 @@ builder.Services.AddRateLimiter(options =>
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
+
 // /health par limit nahi, isliye limiter se pehle
 app.Map("/health", health => health.Run(ctx => ctx.Response.WriteAsync("Healthy")));
 
 app.UseRateLimiter();
 await app.UseOcelot();
 app.Run();
-

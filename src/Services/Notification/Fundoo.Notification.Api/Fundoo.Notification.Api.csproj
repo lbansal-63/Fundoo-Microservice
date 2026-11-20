@@ -10,12 +10,19 @@
   <ItemGroup>
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.*" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    <PackageReference Include="NLog.Web.AspNetCore" Version="5.*" />
 	  <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.33" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Fundoo.Notification.Application\Fundoo.Notification.Application.csproj" />
     <ProjectReference Include="..\Fundoo.Notification.Infrastructure\Fundoo.Notification.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="nlog.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

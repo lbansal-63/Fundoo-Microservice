@@ -29,7 +29,7 @@ public static class DependencyInjection
 
         services.AddSingleton(jwt);
         services.AddScoped<IUserRepository, UserRepository>();
-        services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
+        services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
         services.AddScoped<ITokenService, JwtTokenService>();
         services.AddScoped<IAuthService, AuthService>();
 
@@ -72,7 +72,8 @@ public static class DependencyInjection
                 c.BaseAddress = new Uri(baseUrl);
                 c.Timeout = TimeSpan.FromSeconds(5);
             })
-                .AddHttpMessageHandler<ClientCredentialsHandler>();
+                .AddHttpMessageHandler<ClientCredentialsHandler>()
+                .AddStandardResilienceHandler();
         }
         else
         {
