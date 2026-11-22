@@ -1,6 +1,7 @@
 ﻿using Fundoo.Notes.Application.Abstractions;
 using Fundoo.Notes.Application.Labels;
 using Fundoo.Notes.Application.Notes;
+using Fundoo.Notes.Infrastructure.Caching;
 using Fundoo.Notes.Infrastructure.Persistence;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +18,19 @@ public static class DependencyInjection
 
         // One data source for the whole app (Npgsql handles connection pooling itself)
         services.AddSingleton(_ => NpgsqlDataSource.Create(connectionString));
+
+        // Redis Distributed Caching configuration
+        var redisConn = config.GetConnectionString("Redis")
+            ?? config["Redis:Configuration"]
+            ?? "localhost:6379";
+
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = redisConn;
+            options.InstanceName = "Fundoo_";
+        });
+
+        services.AddScoped<INoteCacheService, RedisNoteCacheService>();
 
         services.AddScoped<INoteRepository, NoteRepository>();
         services.AddScoped<ILabelRepository, LabelRepository>();

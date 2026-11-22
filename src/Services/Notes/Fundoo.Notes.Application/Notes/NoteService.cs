@@ -3,7 +3,7 @@ using Fundoo.Notes.Domain.Entities;
 
 namespace Fundoo.Notes.Application.Notes;
 
-public class NoteService(INoteRepository repo) : INoteService
+public class NoteService(INoteRepository repo, INoteCacheService? cache = null) : INoteService
 {
     public async Task<NoteDto> CreateAsync(Guid userId, string title, string content, string? color, CancellationToken ct = default)
     {
@@ -19,11 +19,31 @@ public class NoteService(INoteRepository repo) : INoteService
             UpdatedAtUtc = now
         };
         await repo.AddAsync(note, ct);
+
+        if (cache != null)
+            await cache.RemoveUserNotesCacheAsync(userId, ct);
+
         return NoteDto.From(note);
     }
 
-    public async Task<List<NoteDto>> ListAsync(Guid userId, NoteView view, CancellationToken ct = default) =>
-        (await repo.ListAsync(userId, view, ct)).Select(NoteDto.From).ToList();
+    public async Task<List<NoteDto>> ListAsync(Guid userId, NoteView view, CancellationToken ct = default)
+    {
+        if (cache != null)
+        {
+            var cached = await cache.GetNotesAsync(userId, view, ct);
+            if (cached != null)
+                return cached;
+        }
+
+        var notes = (await repo.ListAsync(userId, view, ct)).Select(NoteDto.From).ToList();
+
+        if (cache != null)
+        {
+            await cache.SetNotesAsync(userId, view, notes, ct: ct);
+        }
+
+        return notes;
+    }
 
     public async Task<NoteDto?> GetAsync(Guid userId, Guid id, CancellationToken ct = default)
     {
@@ -61,6 +81,10 @@ public class NoteService(INoteRepository repo) : INoteService
         if (!note.IsTrashed) return DeleteResult.NotTrashed;
 
         await repo.DeleteAsync(note, ct);
+
+        if (cache != null)
+            await cache.RemoveUserNotesCacheAsync(userId, ct);
+
         return DeleteResult.Deleted;
     }
 
@@ -72,6 +96,10 @@ public class NoteService(INoteRepository repo) : INoteService
         change(note);
         note.UpdatedAtUtc = DateTime.UtcNow;
         await repo.UpdateAsync(note, ct);
+
+        if (cache != null)
+            await cache.RemoveUserNotesCacheAsync(userId, ct);
+
         return NoteDto.From(note);
     }
 }
