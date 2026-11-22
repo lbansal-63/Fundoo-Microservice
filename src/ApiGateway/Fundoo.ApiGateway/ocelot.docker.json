@@ -5,14 +5,9 @@
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
       "DownstreamPathTemplate": "/api/{version}/auth/{everything}",
       "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "user-api",
-          "Port": 8080
-        }
-      ],
+      "ServiceName": "user-api",
       "LoadBalancerOptions": {
-        "Type": "RoundRobin"
+        "Type": "LeastConnection"
       },
       "RateLimitOptions": {
         "ClientWhitelist": [],
@@ -32,14 +27,9 @@
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
       "DownstreamPathTemplate": "/api/{version}/users",
       "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "user-api",
-          "Port": 8080
-        }
-      ],
+      "ServiceName": "user-api",
       "LoadBalancerOptions": {
-        "Type": "RoundRobin"
+        "Type": "LeastConnection"
       },
       "RateLimitOptions": {
         "ClientWhitelist": [],
@@ -59,14 +49,9 @@
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
       "DownstreamPathTemplate": "/api/{version}/users/{everything}",
       "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "user-api",
-          "Port": 8080
-        }
-      ],
+      "ServiceName": "user-api",
       "LoadBalancerOptions": {
-        "Type": "RoundRobin"
+        "Type": "LeastConnection"
       },
       "RateLimitOptions": {
         "ClientWhitelist": [],
@@ -86,14 +71,9 @@
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
       "DownstreamPathTemplate": "/api/{version}/notes",
       "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "notes-api",
-          "Port": 8080
-        }
-      ],
+      "ServiceName": "notes-api",
       "LoadBalancerOptions": {
-        "Type": "RoundRobin"
+        "Type": "LeastConnection"
       },
       "RateLimitOptions": {
         "ClientWhitelist": [],
@@ -113,14 +93,9 @@
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
       "DownstreamPathTemplate": "/api/{version}/notes/{everything}",
       "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "notes-api",
-          "Port": 8080
-        }
-      ],
+      "ServiceName": "notes-api",
       "LoadBalancerOptions": {
-        "Type": "RoundRobin"
+        "Type": "LeastConnection"
       },
       "RateLimitOptions": {
         "ClientWhitelist": [],
@@ -140,14 +115,9 @@
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
       "DownstreamPathTemplate": "/api/{version}/labels",
       "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "notes-api",
-          "Port": 8080
-        }
-      ],
+      "ServiceName": "notes-api",
       "LoadBalancerOptions": {
-        "Type": "RoundRobin"
+        "Type": "LeastConnection"
       },
       "RateLimitOptions": {
         "ClientWhitelist": [],
@@ -167,14 +137,9 @@
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
       "DownstreamPathTemplate": "/api/{version}/labels/{everything}",
       "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "notes-api",
-          "Port": 8080
-        }
-      ],
+      "ServiceName": "notes-api",
       "LoadBalancerOptions": {
-        "Type": "RoundRobin"
+        "Type": "LeastConnection"
       },
       "RateLimitOptions": {
         "ClientWhitelist": [],
@@ -192,6 +157,12 @@
   ],
   "GlobalConfiguration": {
     "BaseUrl": "http://localhost:8080",
+    "ServiceDiscoveryProvider": {
+      "Scheme": "http",
+      "Host": "consul",
+      "Port": 8500,
+      "Type": "Consul"
+    },
     "RateLimitOptions": {
       "ClientIdHeader": "X-Client-Id",
       "QuotaExceededMessage": "Rate limit exceeded on load balancer. Try again later.",

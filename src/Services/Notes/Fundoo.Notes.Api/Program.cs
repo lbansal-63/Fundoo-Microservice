@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Asp.Versioning;
 using FluentValidation;
+using Fundoo.Notes.Api.Extensions;
 using Fundoo.Notes.Api.Filters;
 using Fundoo.Notes.Api.Validators;
 using NLog.Web;
@@ -24,6 +25,9 @@ if (string.IsNullOrWhiteSpace(signingKey) || signingKey.Length < 32)
     throw new InvalidOperationException("Jwt:SigningKey must be at least 32 characters.");
 
 builder.Services.AddNotesInfrastructure(builder.Configuration);
+
+// Consul Service Discovery
+builder.Services.AddConsulRegistration(builder.Configuration);
 
 var connectionString = builder.Configuration.GetConnectionString("NotesDb")
     ?? throw new InvalidOperationException("ConnectionStrings:NotesDb is missing.");
@@ -143,6 +147,9 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
 });
 
 app.MapGet("/health", () => Results.Ok("Healthy"));
+
+// Consul mein register karo
+app.UseConsulRegistration(builder.Configuration, app.Lifetime);
 
 await app.Services.EnsureNotesTablesCreatedAsync();
 

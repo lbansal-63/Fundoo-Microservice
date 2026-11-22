@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
 using Ocelot.Provider.Polly;
+using Ocelot.Provider.Consul;
 using NLog.Web;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,7 +21,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 
 var ocelotFile = builder.Configuration["OcelotConfigFile"] ?? "ocelot.json";
 builder.Configuration.AddJsonFile(ocelotFile, optional: false, reloadOnChange: true);
-builder.Services.AddOcelot(builder.Configuration).AddPolly();
+builder.Services.AddOcelot(builder.Configuration).AddPolly().AddConsul();
 
 builder.Services.AddRateLimiter(options =>
 {

@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Ocelot" Version="23.*" />
+    <PackageReference Include="Ocelot.Provider.Consul" Version="23.*" />
     <PackageReference Include="Ocelot.Provider.Polly" Version="23.*" />
     <PackageReference Include="NLog.Web.AspNetCore" Version="5.*" />
   </ItemGroup>

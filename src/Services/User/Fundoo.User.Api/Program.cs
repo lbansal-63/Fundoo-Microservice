@@ -4,6 +4,7 @@ using Asp.Versioning;
 using FluentValidation;
 using Fundoo.User.Api.Filters;
 using Fundoo.User.Api.Validators;
+using Fundoo.User.Api.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
@@ -17,6 +18,9 @@ builder.Logging.ClearProviders();
 builder.Host.UseNLog();
 
 builder.Services.AddUserInfrastructure(builder.Configuration);
+
+// Consul Service Discovery — service register karega Consul mein
+builder.Services.AddConsulRegistration(builder.Configuration);
 
 var jwt = builder.Configuration.GetSection("Jwt");
 var signingKey = jwt["SigningKey"];
@@ -114,6 +118,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapGet("/health", () => Results.Ok("Healthy"));
+
+// Consul mein register karo (startup par) aur deregister karo (shutdown par)
+app.UseConsulRegistration(builder.Configuration, app.Lifetime);
 
 using (var scope = app.Services.CreateScope())
 {

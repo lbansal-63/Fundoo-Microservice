@@ -5,18 +5,9 @@
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
       "DownstreamPathTemplate": "/api/{version}/auth/{everything}",
       "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7001
-        },
-        {
-          "Host": "127.0.0.1",
-          "Port": 7001
-        }
-      ],
+      "ServiceName": "user-api",
       "LoadBalancerOptions": {
-        "Type": "RoundRobin"
+        "Type": "LeastConnection"
       },
       "RateLimitOptions": {
         "ClientWhitelist": [],
@@ -36,18 +27,9 @@
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
       "DownstreamPathTemplate": "/api/{version}/users",
       "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7001
-        },
-        {
-          "Host": "127.0.0.1",
-          "Port": 7001
-        }
-      ],
+      "ServiceName": "user-api",
       "LoadBalancerOptions": {
-        "Type": "RoundRobin"
+        "Type": "LeastConnection"
       },
       "RateLimitOptions": {
         "ClientWhitelist": [],
@@ -67,18 +49,9 @@
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
       "DownstreamPathTemplate": "/api/{version}/users/{everything}",
       "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7001
-        },
-        {
-          "Host": "127.0.0.1",
-          "Port": 7001
-        }
-      ],
+      "ServiceName": "user-api",
       "LoadBalancerOptions": {
-        "Type": "RoundRobin"
+        "Type": "LeastConnection"
       },
       "RateLimitOptions": {
         "ClientWhitelist": [],
@@ -98,18 +71,9 @@
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
       "DownstreamPathTemplate": "/api/{version}/notes",
       "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7002
-        },
-        {
-          "Host": "127.0.0.1",
-          "Port": 7002
-        }
-      ],
+      "ServiceName": "notes-api",
       "LoadBalancerOptions": {
-        "Type": "RoundRobin"
+        "Type": "LeastConnection"
       },
       "RateLimitOptions": {
         "ClientWhitelist": [],
@@ -129,18 +93,9 @@
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
       "DownstreamPathTemplate": "/api/{version}/notes/{everything}",
       "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7002
-        },
-        {
-          "Host": "127.0.0.1",
-          "Port": 7002
-        }
-      ],
+      "ServiceName": "notes-api",
       "LoadBalancerOptions": {
-        "Type": "RoundRobin"
+        "Type": "LeastConnection"
       },
       "RateLimitOptions": {
         "ClientWhitelist": [],
@@ -160,18 +115,9 @@
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
       "DownstreamPathTemplate": "/api/{version}/labels",
       "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7002
-        },
-        {
-          "Host": "127.0.0.1",
-          "Port": 7002
-        }
-      ],
+      "ServiceName": "notes-api",
       "LoadBalancerOptions": {
-        "Type": "RoundRobin"
+        "Type": "LeastConnection"
       },
       "RateLimitOptions": {
         "ClientWhitelist": [],
@@ -191,18 +137,9 @@
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
       "DownstreamPathTemplate": "/api/{version}/labels/{everything}",
       "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 7002
-        },
-        {
-          "Host": "127.0.0.1",
-          "Port": 7002
-        }
-      ],
+      "ServiceName": "notes-api",
       "LoadBalancerOptions": {
-        "Type": "RoundRobin"
+        "Type": "LeastConnection"
       },
       "RateLimitOptions": {
         "ClientWhitelist": [],
@@ -220,6 +157,12 @@
   ],
   "GlobalConfiguration": {
     "BaseUrl": "https://localhost:7000",
+    "ServiceDiscoveryProvider": {
+      "Scheme": "http",
+      "Host": "localhost",
+      "Port": 8500,
+      "Type": "Consul"
+    },
     "RateLimitOptions": {
       "ClientIdHeader": "X-Client-Id",
       "QuotaExceededMessage": "Rate limit exceeded on load balancer. Try again later.",
