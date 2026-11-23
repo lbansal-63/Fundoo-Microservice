@@ -27,7 +27,8 @@ public static class DependencyInjection
                       "Smtp:Host and Smtp:FromAddress are required.")
             .ValidateOnStart();
 
-        services.AddScoped<IEmailSender, SmtpEmailSender>();
+        services.Configure<GmailOptions>(config.GetSection("Gmail"));
+        services.AddScoped<IEmailSender, GmailEmailSender>();
         services.AddScoped<INotificationService, NotificationService>();
 
         services.Configure<KafkaOptions>(config.GetSection("Kafka"));
