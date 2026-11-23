@@ -1,5 +1,6 @@
 using Fundoo.Notification.Infrastructure;
 using Fundoo.Notification.Infrastructure.Persistence;
+using Fundoo.Notification.Api.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.OpenApi.Models;
@@ -15,6 +16,9 @@ builder.Logging.ClearProviders();
 builder.Host.UseNLog();
 
 builder.Services.AddNotificationInfrastructure(builder.Configuration);
+
+// Consul Service Discovery
+builder.Services.AddConsulRegistration(builder.Configuration);
 
 var auth = builder.Configuration.GetSection("Auth");
 var authority = auth["Authority"];
@@ -101,6 +105,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapGet("/health", () => Results.Ok("Healthy"));
+
+// Consul mein register/deregister
+app.UseConsulRegistration(builder.Configuration, app.Lifetime);
 
 // Auto-create database tables if DB is accessible
 using (var scope = app.Services.CreateScope())

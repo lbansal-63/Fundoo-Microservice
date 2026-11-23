@@ -73,6 +73,7 @@ app.UseSwaggerUI(c =>
     c.SwaggerEndpoint("/swagger/docs/user/v1/swagger.json", "User Service API (v1)");
     c.SwaggerEndpoint("/swagger/docs/notes/v1/swagger.json", "Notes Service API (v1)");
     c.SwaggerEndpoint("/swagger/docs/notes/v2/swagger.json", "Notes Service API (v2)");
+    c.SwaggerEndpoint("/swagger/docs/notification/v1/swagger.json", "Notification Service API (v1)");
     c.RoutePrefix = "swagger";
 });
 
