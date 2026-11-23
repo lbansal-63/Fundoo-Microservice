@@ -5,43 +5,36 @@
       "UpstreamHttpMethod": [ "GET" ],
       "DownstreamPathTemplate": "/swagger/{everything}",
       "DownstreamScheme": "http",
-      "ServiceName": "user-api"
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "user-api",
+          "Port": 8080
+        }
+      ]
     },
     {
       "UpstreamPathTemplate": "/swagger/docs/notes/{everything}",
       "UpstreamHttpMethod": [ "GET" ],
       "DownstreamPathTemplate": "/swagger/{everything}",
       "DownstreamScheme": "http",
-      "ServiceName": "notes-api"
-    },
-    {
-      "UpstreamPathTemplate": "/swagger/docs/notification/{everything}",
-      "UpstreamHttpMethod": [ "GET" ],
-      "DownstreamPathTemplate": "/swagger/{everything}",
-      "DownstreamScheme": "http",
-      "ServiceName": "notification-api"
-    },
-    {
-      "UpstreamPathTemplate": "/api/notifications/{everything}",
-      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
-      "DownstreamPathTemplate": "/api/notifications/{everything}",
-      "DownstreamScheme": "http",
-      "ServiceName": "notification-api",
-      "LoadBalancerOptions": {
-        "Type": "LeastConnection"
-      },
-      "QoSOptions": {
-        "TimeoutValue": 15000,
-        "ExceptionsAllowedBeforeBreaking": 5,
-        "DurationOfBreak": 10000
-      }
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "notes-api",
+          "Port": 8080
+        }
+      ]
     },
     {
       "UpstreamPathTemplate": "/api/{version}/auth/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
       "DownstreamPathTemplate": "/api/{version}/auth/{everything}",
       "DownstreamScheme": "http",
-      "ServiceName": "user-api",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "user-api",
+          "Port": 8080
+        }
+      ],
       "LoadBalancerOptions": {
         "Type": "LeastConnection"
       },
@@ -63,7 +56,12 @@
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
       "DownstreamPathTemplate": "/api/{version}/users",
       "DownstreamScheme": "http",
-      "ServiceName": "user-api",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "user-api",
+          "Port": 8080
+        }
+      ],
       "LoadBalancerOptions": {
         "Type": "LeastConnection"
       },
@@ -85,7 +83,12 @@
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
       "DownstreamPathTemplate": "/api/{version}/users/{everything}",
       "DownstreamScheme": "http",
-      "ServiceName": "user-api",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "user-api",
+          "Port": 8080
+        }
+      ],
       "LoadBalancerOptions": {
         "Type": "LeastConnection"
       },
@@ -107,7 +110,12 @@
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
       "DownstreamPathTemplate": "/api/{version}/notes",
       "DownstreamScheme": "http",
-      "ServiceName": "notes-api",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "notes-api",
+          "Port": 8080
+        }
+      ],
       "LoadBalancerOptions": {
         "Type": "LeastConnection"
       },
@@ -129,7 +137,12 @@
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
       "DownstreamPathTemplate": "/api/{version}/notes/{everything}",
       "DownstreamScheme": "http",
-      "ServiceName": "notes-api",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "notes-api",
+          "Port": 8080
+        }
+      ],
       "LoadBalancerOptions": {
         "Type": "LeastConnection"
       },
@@ -151,7 +164,12 @@
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
       "DownstreamPathTemplate": "/api/{version}/labels",
       "DownstreamScheme": "http",
-      "ServiceName": "notes-api",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "notes-api",
+          "Port": 8080
+        }
+      ],
       "LoadBalancerOptions": {
         "Type": "LeastConnection"
       },
@@ -173,7 +191,12 @@
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
       "DownstreamPathTemplate": "/api/{version}/labels/{everything}",
       "DownstreamScheme": "http",
-      "ServiceName": "notes-api",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "notes-api",
+          "Port": 8080
+        }
+      ],
       "LoadBalancerOptions": {
         "Type": "LeastConnection"
       },
@@ -193,12 +216,6 @@
   ],
   "GlobalConfiguration": {
     "BaseUrl": "http://localhost:8080",
-    "ServiceDiscoveryProvider": {
-      "Scheme": "http",
-      "Host": "consul",
-      "Port": 8500,
-      "Type": "Consul"
-    },
     "RateLimitOptions": {
       "ClientIdHeader": "X-Client-Id",
       "QuotaExceededMessage": "Rate limit exceeded on load balancer. Try again later.",
