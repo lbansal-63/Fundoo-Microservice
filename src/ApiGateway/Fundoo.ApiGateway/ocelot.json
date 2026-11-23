@@ -1,6 +1,20 @@
 {
   "Routes": [
     {
+      "UpstreamPathTemplate": "/swagger/docs/user/{everything}",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamPathTemplate": "/swagger/{everything}",
+      "DownstreamScheme": "https",
+      "ServiceName": "user-api"
+    },
+    {
+      "UpstreamPathTemplate": "/swagger/docs/notes/{everything}",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DownstreamPathTemplate": "/swagger/{everything}",
+      "DownstreamScheme": "https",
+      "ServiceName": "notes-api"
+    },
+    {
       "UpstreamPathTemplate": "/api/{version}/auth/{everything}",
       "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
       "DownstreamPathTemplate": "/api/{version}/auth/{everything}",

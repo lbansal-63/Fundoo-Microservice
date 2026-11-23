@@ -23,6 +23,10 @@ var ocelotFile = builder.Configuration["OcelotConfigFile"] ?? "ocelot.json";
 builder.Configuration.AddJsonFile(ocelotFile, optional: false, reloadOnChange: true);
 builder.Services.AddOcelot(builder.Configuration).AddPolly().AddConsul();
 
+// Unified Swagger UI on API Gateway
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -62,6 +66,15 @@ app.UseForwardedHeaders();
 
 // /health par limit nahi, isliye limiter se pehle
 app.Map("/health", health => health.Run(ctx => ctx.Response.WriteAsync("Healthy")));
+
+// Unified Swagger UI - allows testing all microservices from single gateway page
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/docs/user/v1/swagger.json", "User Service API (v1)");
+    c.SwaggerEndpoint("/swagger/docs/notes/v1/swagger.json", "Notes Service API (v1)");
+    c.SwaggerEndpoint("/swagger/docs/notes/v2/swagger.json", "Notes Service API (v2)");
+    c.RoutePrefix = "swagger";
+});
 
 app.UseRateLimiter();
 await app.UseOcelot();
