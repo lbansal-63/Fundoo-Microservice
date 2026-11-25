@@ -30,6 +30,47 @@ public class NoteRepository(NpgsqlDataSource dataSource) : INoteRepository
         return notes.FirstOrDefault();
     }
 
+    public async Task<Note?> GetByIdAsync(Guid id, CancellationToken ct = default)
+    {
+        await using var conn = await dataSource.OpenConnectionAsync(ct);
+
+        var notes = new List<Note>();
+        await using (var cmd = new NpgsqlCommand(
+            $"SELECT {NoteColumns} FROM notes n WHERE n.id = @id", conn))
+        {
+            cmd.Parameters.AddWithValue("id", id);
+
+            await using var reader = await cmd.ExecuteReaderAsync(ct);
+            while (await reader.ReadAsync(ct))
+                notes.Add(ReadNote(reader));
+        }
+
+        await LoadLabelsAsync(conn, notes, ct);
+        return notes.FirstOrDefault();
+    }
+
+    public async Task<List<Note>> ListByIdsAsync(IEnumerable<Guid> noteIds, CancellationToken ct = default)
+    {
+        var ids = noteIds.Distinct().ToList();
+        if (ids.Count == 0) return new List<Note>();
+
+        await using var conn = await dataSource.OpenConnectionAsync(ct);
+
+        var notes = new List<Note>();
+        await using (var cmd = new NpgsqlCommand(
+            $"SELECT {NoteColumns} FROM notes n WHERE n.id = ANY(@ids) AND n.is_archived = FALSE AND n.is_trashed = FALSE ORDER BY n.updated_at_utc DESC", conn))
+        {
+            cmd.Parameters.AddWithValue("ids", ids.ToArray());
+
+            await using var reader = await cmd.ExecuteReaderAsync(ct);
+            while (await reader.ReadAsync(ct))
+                notes.Add(ReadNote(reader));
+        }
+
+        await LoadLabelsAsync(conn, notes, ct);
+        return notes;
+    }
+
     public async Task<List<Note>> ListAsync(Guid userId, NoteView view, CancellationToken ct = default)
     {
         // filter sirf hamare fixed strings hain, user ki koi value SQL text mein nahi judti

@@ -15,7 +15,6 @@ namespace Fundoo.Notification.Infrastructure.Email;
 
 public class GmailEmailSender(
     IOptions<GmailOptions> gmailOptions,
-    IOptions<SmtpOptions> smtpOptions,
     ILogger<GmailEmailSender> logger) : IEmailSender
 {
     public async Task SendAsync(EmailMessage message, CancellationToken ct = default)

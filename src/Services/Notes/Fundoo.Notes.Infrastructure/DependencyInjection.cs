@@ -1,4 +1,5 @@
 ﻿using Fundoo.Notes.Application.Abstractions;
+using Fundoo.Notes.Application.Collaborators;
 using Fundoo.Notes.Application.Labels;
 using Fundoo.Notes.Application.Notes;
 using Fundoo.Notes.Infrastructure.Caching;
@@ -33,8 +34,10 @@ public static class DependencyInjection
         services.AddScoped<INoteCacheService, RedisNoteCacheService>();
 
         services.AddScoped<INoteRepository, NoteRepository>();
+        services.AddScoped<ICollaboratorRepository, CollaboratorRepository>();
         services.AddScoped<ILabelRepository, LabelRepository>();
         services.AddScoped<INoteService, NoteService>();
+        services.AddScoped<ICollaboratorService, CollaboratorService>();
         services.AddScoped<ILabelService, LabelService>();
         return services;
     }
@@ -69,6 +72,29 @@ public static class DependencyInjection
                     note_id UUID NOT NULL REFERENCES notes(id) ON DELETE CASCADE,
                     label_id UUID NOT NULL REFERENCES labels(id) ON DELETE CASCADE,
                     PRIMARY KEY (note_id, label_id)
+                );
+
+                CREATE TABLE IF NOT EXISTS note_collaborators (
+                    id UUID PRIMARY KEY,
+                    note_id UUID NOT NULL REFERENCES notes(id) ON DELETE CASCADE,
+                    user_id UUID NOT NULL,
+                    user_email VARCHAR(255) NOT NULL,
+                    permission VARCHAR(50) NOT NULL,
+                    created_at_utc TIMESTAMP WITH TIME ZONE NOT NULL,
+                    updated_at_utc TIMESTAMP WITH TIME ZONE NOT NULL,
+                    UNIQUE (note_id, user_id)
+                );
+
+                CREATE TABLE IF NOT EXISTS note_share_history (
+                    id UUID PRIMARY KEY,
+                    note_id UUID NOT NULL REFERENCES notes(id) ON DELETE CASCADE,
+                    performed_by_user_id UUID NOT NULL,
+                    target_user_id UUID NOT NULL,
+                    target_user_email VARCHAR(255) NOT NULL,
+                    action VARCHAR(50) NOT NULL,
+                    old_permission VARCHAR(50),
+                    new_permission VARCHAR(50),
+                    created_at_utc TIMESTAMP WITH TIME ZONE NOT NULL
                 );
                 """);
             await cmd.ExecuteNonQueryAsync(ct);

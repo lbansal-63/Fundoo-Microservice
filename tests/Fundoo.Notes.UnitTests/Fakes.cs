@@ -10,6 +10,15 @@ public class FakeNoteRepository : INoteRepository
     public Task<Note?> GetOwnedAsync(Guid userId, Guid id, CancellationToken ct = default) =>
         Task.FromResult(Notes.FirstOrDefault(n => n.Id == id && n.UserId == userId));
 
+    public Task<Note?> GetByIdAsync(Guid id, CancellationToken ct = default) =>
+        Task.FromResult(Notes.FirstOrDefault(n => n.Id == id));
+
+    public Task<List<Note>> ListByIdsAsync(IEnumerable<Guid> noteIds, CancellationToken ct = default)
+    {
+        var idSet = noteIds.ToHashSet();
+        return Task.FromResult(Notes.Where(n => idSet.Contains(n.Id) && !n.IsArchived && !n.IsTrashed).ToList());
+    }
+
     public Task<List<Note>> ListAsync(Guid userId, NoteView view, CancellationToken ct = default)
     {
         var q = Notes.Where(n => n.UserId == userId);

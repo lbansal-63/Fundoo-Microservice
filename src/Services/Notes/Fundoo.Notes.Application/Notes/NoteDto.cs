@@ -16,4 +16,19 @@ public record NoteDto(
         n.NoteLabels.Select(nl => new LabelDto(nl.Label.Id, nl.Label.Name)).ToList());
 }
 
-public enum DeleteResult { Deleted, NotFound, NotTrashed }
+public enum NoteOperationStatus
+{
+    Success,
+    NotFound,
+    ForbiddenReadOnly,
+    NotOwner,
+    NotTrashed
+}
+
+public record NoteOperationResult<T>(NoteOperationStatus Status, T? Data = default, string? Message = null)
+{
+    public static NoteOperationResult<T> Ok(T data) => new(NoteOperationStatus.Success, data);
+    public static NoteOperationResult<T> NotFound() => new(NoteOperationStatus.NotFound, Message: "Note not found.");
+    public static NoteOperationResult<T> Forbidden(string msg) => new(NoteOperationStatus.ForbiddenReadOnly, Message: msg);
+    public static NoteOperationResult<T> NotOwner() => new(NoteOperationStatus.NotOwner, Message: "Only the note owner can perform this action.");
+}

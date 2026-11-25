@@ -25,21 +25,22 @@ public class NoteServiceTests
     }
 
     [Fact]
-    public async Task Get_OtherUsersNote_ReturnsNull()
+    public async Task Get_OtherUsersNote_ReturnsNotFound()
     {
         var note = await _service.CreateAsync(_asha, "Private", "Body", null);
 
-        Assert.Null(await _service.GetAsync(_ravi, note.Id));
+        var result = await _service.GetAsync(_ravi, note.Id);
+        Assert.Equal(NoteOperationStatus.NotFound, result.Status);
     }
 
     [Fact]
-    public async Task Update_OtherUsersNote_ReturnsNull_AndDoesNotChangeIt()
+    public async Task Update_OtherUsersNote_ReturnsNotFound_AndDoesNotChangeIt()
     {
         var note = await _service.CreateAsync(_asha, "Original", "Body", null);
 
         var result = await _service.UpdateAsync(_ravi, note.Id, "Hacked", "Body", null, false);
 
-        Assert.Null(result);
+        Assert.Equal(NoteOperationStatus.NotFound, result.Status);
         Assert.Equal("Original", _repo.Notes.Single().Title);
     }
 
@@ -84,31 +85,31 @@ public class NoteServiceTests
 
         var result = await _service.DeleteAsync(_asha, note.Id);
 
-        Assert.Equal(DeleteResult.NotTrashed, result);
+        Assert.Equal(NoteOperationStatus.NotTrashed, result.Status);
         Assert.Single(_repo.Notes);
     }
 
     [Fact]
-    public async Task Delete_TrashedNote_RemovesIt()
+    public async Task Delete_TrashedNote_IsRemovedPermanently()
     {
         var note = await _service.CreateAsync(_asha, "N", "", null);
         await _service.SetTrashedAsync(_asha, note.Id, true);
 
         var result = await _service.DeleteAsync(_asha, note.Id);
 
-        Assert.Equal(DeleteResult.Deleted, result);
+        Assert.Equal(NoteOperationStatus.Success, result.Status);
         Assert.Empty(_repo.Notes);
     }
 
     [Fact]
-    public async Task Delete_OtherUsersNote_ReturnsNotFound_AndKeepsNote()
+    public async Task Delete_OtherUsersNote_ReturnsNotOwner()
     {
         var note = await _service.CreateAsync(_asha, "N", "", null);
         await _service.SetTrashedAsync(_asha, note.Id, true);
 
         var result = await _service.DeleteAsync(_ravi, note.Id);
 
-        Assert.Equal(DeleteResult.NotFound, result);
+        Assert.Equal(NoteOperationStatus.NotOwner, result.Status);
         Assert.Single(_repo.Notes);
     }
 }

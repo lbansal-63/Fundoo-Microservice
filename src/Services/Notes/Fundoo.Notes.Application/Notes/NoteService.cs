@@ -3,7 +3,10 @@ using Fundoo.Notes.Domain.Entities;
 
 namespace Fundoo.Notes.Application.Notes;
 
-public class NoteService(INoteRepository repo, INoteCacheService? cache = null) : INoteService
+public class NoteService(
+    INoteRepository repo,
+    ICollaboratorRepository? collaboratorRepo = null,
+    INoteCacheService? cache = null) : INoteService
 {
     public async Task<NoteDto> CreateAsync(Guid userId, string title, string content, string? color, CancellationToken ct = default)
     {
@@ -35,71 +38,157 @@ public class NoteService(INoteRepository repo, INoteCacheService? cache = null) 
                 return cached;
         }
 
-        var notes = (await repo.ListAsync(userId, view, ct)).Select(NoteDto.From).ToList();
+        var ownedNotes = await repo.ListAsync(userId, view, ct);
+
+        // Also fetch notes shared with this user if view is Active
+        var allNotes = new List<Note>(ownedNotes);
+        if (view == NoteView.Active && collaboratorRepo != null)
+        {
+            var sharedNoteIds = await collaboratorRepo.GetSharedNoteIdsForUserAsync(userId, ct);
+            if (sharedNoteIds.Count > 0)
+            {
+                var sharedNotes = await repo.ListByIdsAsync(sharedNoteIds, ct);
+                // Avoid duplicates if user is owner and also in collaborators table
+                var existingIds = new HashSet<Guid>(ownedNotes.Select(n => n.Id));
+                foreach (var sn in sharedNotes)
+                {
+                    if (existingIds.Add(sn.Id))
+                        allNotes.Add(sn);
+                }
+            }
+        }
+
+        var dtoList = allNotes.OrderByDescending(n => n.IsPinned).ThenByDescending(n => n.UpdatedAtUtc).Select(NoteDto.From).ToList();
 
         if (cache != null)
         {
-            await cache.SetNotesAsync(userId, view, notes, ct: ct);
+            await cache.SetNotesAsync(userId, view, dtoList, ct: ct);
         }
 
-        return notes;
+        return dtoList;
     }
 
-    public async Task<NoteDto?> GetAsync(Guid userId, Guid id, CancellationToken ct = default)
+    public async Task<NoteOperationResult<NoteDto>> GetAsync(Guid userId, Guid id, CancellationToken ct = default)
     {
-        var note = await repo.GetOwnedAsync(userId, id, ct);
-        return note is null ? null : NoteDto.From(note);
+        var note = await repo.GetByIdAsync(id, ct);
+        if (note is null)
+            return NoteOperationResult<NoteDto>.NotFound();
+
+        // Check ownership or collaborator access
+        if (note.UserId == userId)
+            return NoteOperationResult<NoteDto>.Ok(NoteDto.From(note));
+
+        if (collaboratorRepo != null)
+        {
+            var collaborator = await collaboratorRepo.GetCollaboratorAsync(id, userId, ct);
+            if (collaborator != null)
+                return NoteOperationResult<NoteDto>.Ok(NoteDto.From(note));
+        }
+
+        return NoteOperationResult<NoteDto>.NotFound();
     }
 
-    public Task<NoteDto?> UpdateAsync(Guid userId, Guid id, string title, string content, string? color, bool isPinned, CancellationToken ct = default) =>
-        MutateAsync(userId, id, n =>
-        {
-            n.Title = title.Trim();
-            n.Content = content;
-            n.Color = color;
-            n.IsPinned = isPinned;
-        }, ct);
-
-    public Task<NoteDto?> SetArchivedAsync(Guid userId, Guid id, bool archived, CancellationToken ct = default) =>
-        MutateAsync(userId, id, n =>
-        {
-            n.IsArchived = archived;
-            if (archived) n.IsPinned = false;
-        }, ct);
-
-    public Task<NoteDto?> SetTrashedAsync(Guid userId, Guid id, bool trashed, CancellationToken ct = default) =>
-        MutateAsync(userId, id, n =>
-        {
-            n.IsTrashed = trashed;
-            if (trashed) n.IsPinned = false;
-        }, ct);
-
-    public async Task<DeleteResult> DeleteAsync(Guid userId, Guid id, CancellationToken ct = default)
+    public async Task<NoteOperationResult<NoteDto>> UpdateAsync(
+        Guid userId, Guid id, string title, string content, string? color, bool isPinned, CancellationToken ct = default)
     {
-        var note = await repo.GetOwnedAsync(userId, id, ct);
-        if (note is null) return DeleteResult.NotFound;
-        if (!note.IsTrashed) return DeleteResult.NotTrashed;
+        var note = await repo.GetByIdAsync(id, ct);
+        if (note is null)
+            return NoteOperationResult<NoteDto>.NotFound();
+
+        // If not owner, check if user is Editor collaborator
+        if (note.UserId != userId)
+        {
+            if (collaboratorRepo is null)
+                return NoteOperationResult<NoteDto>.NotFound();
+
+            var collaborator = await collaboratorRepo.GetCollaboratorAsync(id, userId, ct);
+            if (collaborator is null)
+                return NoteOperationResult<NoteDto>.NotFound();
+
+            if (collaborator.Permission != CollaboratorPermission.Editor)
+                return NoteOperationResult<NoteDto>.Forbidden("You have read-only access to this note and cannot modify it.");
+        }
+
+        note.Title = title.Trim();
+        note.Content = content;
+        note.Color = color;
+        note.IsPinned = isPinned;
+        note.UpdatedAtUtc = DateTime.UtcNow;
+
+        await repo.UpdateAsync(note, ct);
+
+        if (cache != null)
+        {
+            await cache.RemoveUserNotesCacheAsync(note.UserId, ct);
+            if (note.UserId != userId)
+                await cache.RemoveUserNotesCacheAsync(userId, ct);
+        }
+
+        return NoteOperationResult<NoteDto>.Ok(NoteDto.From(note));
+    }
+
+    public async Task<NoteOperationResult<NoteDto>> SetArchivedAsync(Guid userId, Guid id, bool archived, CancellationToken ct = default)
+    {
+        var note = await repo.GetByIdAsync(id, ct);
+        if (note is null)
+            return NoteOperationResult<NoteDto>.NotFound();
+
+        // Only owner can archive/unarchive
+        if (note.UserId != userId)
+            return NoteOperationResult<NoteDto>.NotOwner();
+
+        note.IsArchived = archived;
+        if (archived) note.IsPinned = false;
+        note.UpdatedAtUtc = DateTime.UtcNow;
+
+        await repo.UpdateAsync(note, ct);
+
+        if (cache != null)
+            await cache.RemoveUserNotesCacheAsync(userId, ct);
+
+        return NoteOperationResult<NoteDto>.Ok(NoteDto.From(note));
+    }
+
+    public async Task<NoteOperationResult<NoteDto>> SetTrashedAsync(Guid userId, Guid id, bool trashed, CancellationToken ct = default)
+    {
+        var note = await repo.GetByIdAsync(id, ct);
+        if (note is null)
+            return NoteOperationResult<NoteDto>.NotFound();
+
+        // Only owner can trash/restore
+        if (note.UserId != userId)
+            return NoteOperationResult<NoteDto>.NotOwner();
+
+        note.IsTrashed = trashed;
+        if (trashed) note.IsPinned = false;
+        note.UpdatedAtUtc = DateTime.UtcNow;
+
+        await repo.UpdateAsync(note, ct);
+
+        if (cache != null)
+            await cache.RemoveUserNotesCacheAsync(userId, ct);
+
+        return NoteOperationResult<NoteDto>.Ok(NoteDto.From(note));
+    }
+
+    public async Task<NoteOperationResult<bool>> DeleteAsync(Guid userId, Guid id, CancellationToken ct = default)
+    {
+        var note = await repo.GetByIdAsync(id, ct);
+        if (note is null)
+            return NoteOperationResult<bool>.NotFound();
+
+        // Only owner can permanently delete
+        if (note.UserId != userId)
+            return NoteOperationResult<bool>.NotOwner();
+
+        if (!note.IsTrashed)
+            return new NoteOperationResult<bool>(NoteOperationStatus.NotTrashed, false, "Only trashed notes can be permanently deleted.");
 
         await repo.DeleteAsync(note, ct);
 
         if (cache != null)
             await cache.RemoveUserNotesCacheAsync(userId, ct);
 
-        return DeleteResult.Deleted;
-    }
-
-    private async Task<NoteDto?> MutateAsync(Guid userId, Guid id, Action<Note> change, CancellationToken ct)
-    {
-        var note = await repo.GetOwnedAsync(userId, id, ct);
-        if (note is null) return null;
-
-        change(note);
-        note.UpdatedAtUtc = DateTime.UtcNow;
-        await repo.UpdateAsync(note, ct);
-
-        if (cache != null)
-            await cache.RemoveUserNotesCacheAsync(userId, ct);
-
-        return NoteDto.From(note);
+        return NoteOperationResult<bool>.Ok(true);
     }
 }
