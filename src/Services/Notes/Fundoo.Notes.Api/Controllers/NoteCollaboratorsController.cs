@@ -11,6 +11,7 @@ namespace Fundoo.Notes.Api.Controllers;
 [ApiController]
 [Authorize]
 [ApiVersion("1.0")]
+[ApiVersion("2.0")]
 [Route("api/v{version:apiVersion}/notes/{noteId:guid}/collaborators")]
 public class NoteCollaboratorsController(ICollaboratorService collaboratorService) : ControllerBase
 {
